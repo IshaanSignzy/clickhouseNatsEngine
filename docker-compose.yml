@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  # NATS service
+  nats:
+    image: nats:latest
+    container_name: nats
+    ports:
+      - "4222:4222"  # NATS port
+    networks:
+      - backend
+
+  # ClickHouse service
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=yourpassword
+    ports:
+      - "9000:9000"   # HTTP interface
+      - "8123:8123"   # Web UI and HTTP interface
+      - "9009:9009"   # Native TCP interface
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the init.sql script
+    networks:
+      - backend
+
+volumes:
+  clickhouse_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
